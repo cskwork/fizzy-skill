@@ -9,8 +9,8 @@ Prerequisites:
 
 Usage:
     # Migrate from a cached JSON dump (agent fetched it via Atlassian MCP)
-    python3 jira_to_fizzy.py --from-json /tmp/A20-783.json \\
-        --board <fizzy-board-id> --site dong-a.atlassian.net
+    python3 jira_to_fizzy.py --from-json /tmp/PROJ-123.json \\
+        --board <fizzy-board-id> --site your-site.atlassian.net
 
     # Wipe stale user comments before re-running
     python3 jira_to_fizzy.py --card <N> --wipe-user-comments <username>
@@ -158,7 +158,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--from-json", required=False, help="Path to getJiraIssue JSON dump")
     p.add_argument("--board", help="Fizzy board ID (required when creating a card)")
-    p.add_argument("--site", default="dong-a.atlassian.net", help="Jira site hostname")
+    p.add_argument("--site", required=True, help="Jira site hostname (e.g. your-site.atlassian.net)")
     p.add_argument("--split-numbered", action="store_true",
                    help="Create one sub-card per top-level numbered item in description")
     p.add_argument("--card", help="Existing Fizzy card number (for --wipe-user-comments)")
