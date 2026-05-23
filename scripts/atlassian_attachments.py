@@ -16,7 +16,7 @@ Setup:
 Usage:
     # CLI: download attachment by id
     python3 atlassian_attachments.py download 42052
-    python3 atlassian_attachments.py download-issue A20-783 --from-json issue.json
+    python3 atlassian_attachments.py download-issue PROJ-123 --from-json issue.json
 
     # Library
     from atlassian_attachments import load_env, download_attachment, download_all

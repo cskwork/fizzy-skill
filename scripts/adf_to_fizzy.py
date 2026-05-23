@@ -172,16 +172,20 @@ def adf_to_fizzy(node, depth=0, attachment_map=None):
     return "".join(adf_to_fizzy(c, depth, attachment_map) for c in children)
 
 
-def build_attachment_map(issue_json):
-    """{filename: dong-a-direct-url} for use in adf_to_fizzy(..., attachment_map=...)."""
+def build_attachment_map(issue_json, site=None):
+    """{filename: site-direct-url} for use in adf_to_fizzy(..., attachment_map=...).
+
+    When ``site`` is supplied (e.g. ``your-site.atlassian.net``), any
+    ``api.atlassian.com/.../attachment/content/<id>`` URL is rewritten to the
+    same-site form so a logged-in Atlassian user can click through directly.
+    Otherwise the original URL is kept verbatim.
+    """
     atts = issue_json["issues"]["nodes"][0]["fields"].get("attachment", []) or []
-    # Prefer dong-a.* URLs (Atlassian login redirect works); fall back to api.atlassian.*
     out = {}
     for a in atts:
         url = a.get("content", "")
-        if "api.atlassian.com" in url:
-            # rewrite to dong-a direct (more user-friendly)
-            url = f"https://dong-a.atlassian.net/rest/api/3/attachment/content/{a['id']}"
+        if site and "api.atlassian.com" in url:
+            url = f"https://{site}/rest/api/3/attachment/content/{a['id']}"
         out[a.get("filename", "")] = url
     return out
 

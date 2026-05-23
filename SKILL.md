@@ -1,6 +1,6 @@
 ---
 name: fizzy
-description: Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.agentic-worker.store) — install/auth fizzy-cli, list boards/cards, create/update/comment cards, or migrate a Jira issue (description + attachment URLs + comments) into one or more Fizzy cards. Covers Fizzy quirks (NO markdown rendering, silent pagination in comment list, single-account auto-select, magic-link in non-TTY) and Jira ADF → Fizzy plain-text conversion.
+description: Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) — install/auth fizzy-cli, list boards/cards, create/update/comment cards, or migrate a Jira issue (description + attachment URLs + comments) into one or more Fizzy cards. Covers Fizzy quirks (NO markdown rendering, silent pagination in comment list, single-account auto-select, magic-link in non-TTY) and Jira ADF → Fizzy plain-text conversion.
 ---
 
 # fizzy
@@ -22,7 +22,7 @@ Markdown looks broken after posting to Fizzy?  → §4 Markdown quirks
 
 ## Inputs (env)
 
-- `FIZZY_HOST` — base URL (e.g. `https://fizzy.agentic-worker.store`)
+- `FIZZY_HOST` — base URL (e.g. `https://fizzy.example.com`)
 - `FIZZY_EMAIL` — account email
 - `FIZZY_TOKEN` (preferred) OR magic-link from inbox
 
@@ -119,9 +119,9 @@ End-to-end migrator: pulls issue + comments via Atlassian MCP, converts ADF → 
 ```bash
 # Prereq: Fizzy authenticated (§1), Atlassian MCP available, acli logged in
 python3 ~/.claude/skills/fizzy/scripts/jira_to_fizzy.py \
-  --issue A20-783 \
+  --issue PROJ-123 \
   --board <fizzy-board-id> \
-  --site dong-a.atlassian.net \
+  --site your-site.atlassian.net \
   --split-numbered   # auto-create sub-cards from "1.", "2.", "3." in description
 ```
 
@@ -210,7 +210,7 @@ python3 ~/.claude/skills/fizzy/scripts/jira_to_fizzy.py --card <N> --wipe-user-c
 ```html
 <p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
 <p>[KEY] 제목 영역</p>
-<p>프로젝트: AIDT  ·  타입: Bug  ·  상태: 진행 중  ·  담당: 홍길동</p>
+<p>프로젝트: MyProject  ·  타입: Bug  ·  상태: 진행 중  ·  담당: 홍길동</p>
 <p>Jira: https://...</p>
 <p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
 <p>[개요]</p>

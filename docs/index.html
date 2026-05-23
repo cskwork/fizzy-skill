@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>fizzy-skill — Claude Code / Codex skill for self-hosted Fizzy kanban</title>
+  <meta name="description" content="A Claude Code and Codex CLI skill that operates a self-hosted Fizzy kanban: install, auth, daily card and comment CRUD, and end-to-end Jira-to-Fizzy migration with all the rendering quirks baked in." />
+  <meta name="color-scheme" content="light" />
+  <meta property="og:title" content="fizzy-skill" />
+  <meta property="og:description" content="A Claude Code / Codex skill that operates a self-hosted Fizzy kanban without tripping on its rendering quirks." />
+  <meta property="og:url" content="https://cskwork.github.io/fizzy-skill/" />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="brand" href="./">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">fizzy-skill</span>
+    </a>
+    <nav class="topnav">
+      <a href="#why">Why</a>
+      <a href="#install">Install</a>
+      <a href="#quickstart">Quick start</a>
+      <a href="#quirks">Quirks</a>
+      <a class="topnav-cta" href="https://github.com/cskwork/fizzy-skill" rel="noopener noreferrer">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">Claude Code &middot; Codex CLI &middot; Skill</p>
+      <h1>Operate self-hosted <span class="accent">Fizzy</span> without tripping on its renderer.</h1>
+      <p class="lede">
+        A single drop-in skill that turns an agent into a competent Fizzy operator &mdash;
+        onboarding, daily card and comment CRUD, and an end-to-end Jira-to-Fizzy migrator,
+        with every rendering quirk and silent pagination trap documented in line.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#install">Install the skill</a>
+        <a class="btn btn-ghost" href="https://github.com/cskwork/fizzy-skill" rel="noopener noreferrer">View source</a>
+      </div>
+
+      <div class="hero-codecard" aria-label="install snippet">
+        <div class="codecard-head">
+          <span class="codecard-dot"></span>
+          <span class="codecard-dot"></span>
+          <span class="codecard-dot"></span>
+          <span class="codecard-title">terminal</span>
+        </div>
+<pre class="codecard-body"><code><span class="c-prompt">$</span> git clone https://github.com/cskwork/fizzy-skill.git \
+      ~/.claude/skills/fizzy
+
+<span class="c-comment"># Codex users: same SKILL.md, different home</span>
+<span class="c-prompt">$</span> git clone https://github.com/cskwork/fizzy-skill.git \
+      ~/.codex/skills/fizzy</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" class="band">
+    <div class="container">
+      <h2>The five traps this skill defuses</h2>
+      <p class="section-lede">
+        Fizzy is good software with a few rough edges. Each of these has cost real time to discover;
+        the skill encodes the workaround so an agent never relearns them.
+      </p>
+
+      <ol class="trap-list">
+        <li>
+          <h3>Fizzy is not a markdown renderer</h3>
+          <p>
+            Bodies are stored as HTML and auto-converted to a plain-text-with-bullets format.
+            <code>**bold**</code> shows up as literal asterisks. The server accepts HTML but
+            silently strips <code>&lt;h1&gt;</code>&hellip;<code>&lt;h6&gt;</code>,
+            <code>&lt;strong&gt;</code>, <code>&lt;hr&gt;</code>, <code>&lt;a href&gt;</code>,
+            <code>&lt;img&gt;</code>, <code>&lt;pre&gt;</code>, and <code>&lt;table&gt;</code>.
+            The skill ships an ADF-to-HTML converter that compensates for every stripped tag.
+          </p>
+        </li>
+        <li>
+          <h3><code>--json</code> is a global flag</h3>
+          <p>
+            Place it before the subcommand or it is silently ignored.
+            <code>fizzy-cli --json comment list 36</code> works;
+            <code>fizzy-cli comment list 36 --json</code> does not, and there is no warning.
+          </p>
+        </li>
+        <li>
+          <h3><code>comment list</code> paginates silently</h3>
+          <p>
+            Page one returns roughly three items, with no <code>has_more</code> hint.
+            Any script that "wipe comments by user X" without looping leaves orphans behind.
+            The skill loops until the filtered list is empty.
+          </p>
+        </li>
+        <li>
+          <h3>Single-account auto-default is not done</h3>
+          <p>
+            Right after <code>auth login</code>, <code>board list</code> errors cryptically until
+            you run <code>fizzy-cli account set &lt;SLUG&gt;</code>, even if the account is the only one.
+          </p>
+        </li>
+        <li>
+          <h3>Magic-link auth is broken in non-TTY</h3>
+          <p>
+            <code>auth login --email --code</code> re-issues a code on every call, invalidating the
+            one the user already pasted from the inbox. The skill includes a curl two-step that keeps
+            the pending token in shell scope and verifies cleanly.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="what" class="band band-tint">
+    <div class="container">
+      <h2>What the skill does</h2>
+
+      <div class="cards">
+        <article class="card">
+          <header class="card-head">
+            <span class="card-tag">1</span>
+            <h3>Onboarding</h3>
+          </header>
+          <p>
+            Install via Homebrew or build from source (with the <code>go install</code> footgun called out).
+            Point at the host, authenticate via PAT or magic-link curl two-step, set the default account,
+            verify with a throwaway card.
+          </p>
+        </article>
+
+        <article class="card">
+          <header class="card-head">
+            <span class="card-tag">2</span>
+            <h3>Daily card / comment ops</h3>
+          </header>
+          <p>
+            Board / card / comment CRUD with the markdown gotchas baked in.
+            User-only comment filtering, pagination-safe wipe, retry on <code>context deadline exceeded</code>.
+          </p>
+        </article>
+
+        <article class="card">
+          <header class="card-head">
+            <span class="card-tag">3</span>
+            <h3>Jira-to-Fizzy migration</h3>
+          </header>
+          <p>
+            One command pulls a Jira issue (description, attachments, comments) and produces
+            a parent card plus optional numbered sub-cards.
+            ADF is converted to Fizzy-optimal hybrid HTML so headings, lists, and tables survive.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="band">
+    <div class="container">
+      <h2>Install</h2>
+      <p class="section-lede">
+        One git clone into your CLI&rsquo;s skill directory. No build step.
+      </p>
+
+      <div class="install-grid">
+        <article class="install-block">
+          <h3>Claude Code</h3>
+<pre><code>git clone https://github.com/cskwork/fizzy-skill.git \
+  ~/.claude/skills/fizzy</code></pre>
+          <p class="muted">The skill loads automatically the next time Claude Code reads your skills directory.</p>
+        </article>
+
+        <article class="install-block">
+          <h3>Codex CLI</h3>
+<pre><code>git clone https://github.com/cskwork/fizzy-skill.git \
+  ~/.codex/skills/fizzy</code></pre>
+          <p class="muted">Codex reads the same <code>SKILL.md</code> front-matter format. One clone serves either CLI.</p>
+        </article>
+      </div>
+
+      <h3 class="prereqs-title">Prerequisites</h3>
+      <ul class="checklist">
+        <li><code>fizzy-cli</code> on <code>PATH</code> &mdash; install with <code>brew install tobiasbischoff/tap/fizzy-cli</code>, or clone and <code>go build</code>. (<code>go install</code> does not work; the module declares the short form <code>module fizzy-cli</code>.)</li>
+        <li>For Jira migration: <code>acli</code> authenticated to your Atlassian site, plus a Personal Access Token in <code>~/.config/fizzy/.env</code> (<code>chmod 600</code>) &mdash; acli&rsquo;s OAuth scope cannot fetch attachment content.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="quickstart" class="band band-tint">
+    <div class="container">
+      <h2>Quick start</h2>
+
+      <h3>Connect</h3>
+<pre><code>export FIZZY_HOST="https://fizzy.example.com"
+export FIZZY_TOKEN="..."          # PAT from Fizzy account settings
+
+fizzy-cli config set --base-url "$FIZZY_HOST"
+fizzy-cli auth login --token "$FIZZY_TOKEN"
+fizzy-cli account set &lt;SLUG&gt;      # required even with one account
+fizzy-cli board list</code></pre>
+
+      <h3>Daily ops</h3>
+<pre><code>fizzy-cli card create --board-id &lt;ID&gt; \
+  --title "fizzy setup test" --description "ok" --status published
+
+fizzy-cli --json comment list &lt;N&gt; \
+  | jq -r '.[] | select(.creator.name != null) | .id'</code></pre>
+
+      <h3>Migrate a Jira issue</h3>
+<pre><code>python3 scripts/jira_to_fizzy.py \
+  --from-json /tmp/PROJ-123.json \
+  --board &lt;fizzy-board-id&gt; \
+  --site your-site.atlassian.net \
+  --split-numbered</code></pre>
+      <p class="muted">
+        Cached JSON is produced by the Atlassian MCP <code>getJiraIssue</code> tool.
+        Pass <code>--wipe-user-comments &lt;username&gt;</code> on <code>--card &lt;N&gt;</code>
+        to clean a previous run before re-importing.
+      </p>
+    </div>
+  </section>
+
+  <section id="quirks" class="band">
+    <div class="container">
+      <h2>Fizzy rendering &mdash; the quick reference</h2>
+      <p class="section-lede">
+        The single most useful table in this repo. Send HTML; assume nothing about the result.
+      </p>
+
+      <h3>What Fizzy auto-renders</h3>
+      <div class="table-wrap">
+        <table class="qtable">
+          <thead><tr><th>Tag</th><th>Result in the UI</th></tr></thead>
+          <tbody>
+            <tr><td><code>&lt;p&gt;...&lt;/p&gt;</code></td><td>Paragraph with blank-line separation</td></tr>
+            <tr><td><code>&lt;ul&gt;&lt;li&gt;X&lt;/li&gt;&lt;/ul&gt;</code></td><td><code>&bull; X</code> with auto bullet</td></tr>
+            <tr><td><code>&lt;ol&gt;&lt;li&gt;X&lt;/li&gt;&lt;/ol&gt;</code></td><td><code>1. X</code> with auto numbering</td></tr>
+            <tr><td>nested <code>&lt;ul&gt;</code> in <code>&lt;li&gt;</code></td><td>Two-space indented bullet</td></tr>
+            <tr><td><code>&lt;blockquote&gt;X&lt;/blockquote&gt;</code></td><td>Wrapped in curly quotes</td></tr>
+            <tr><td><code>&lt;br&gt;</code></td><td>Line break inside a paragraph</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>What Fizzy strips &mdash; and the workaround</h3>
+      <div class="table-wrap">
+        <table class="qtable">
+          <thead><tr><th>Tag</th><th>Fizzy behavior</th><th>Workaround</th></tr></thead>
+          <tbody>
+            <tr><td><code>&lt;h1&gt;</code>&hellip;<code>&lt;h6&gt;</code></td><td>Shown as plain text, no marker</td><td>Wrap in <code>&lt;p&gt;[Section]&lt;/p&gt;</code> or use a box-drawing rule</td></tr>
+            <tr><td><code>&lt;strong&gt;</code> / <code>&lt;em&gt;</code></td><td>Markers stripped</td><td>Use bracket labels or <code>&lt;p&gt;</code> structure to carry weight</td></tr>
+            <tr><td><code>&lt;hr&gt;</code></td><td>Disappears</td><td>Emit <code>&lt;p&gt;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&lt;/p&gt;</code></td></tr>
+            <tr><td><code>&lt;a href=&quot;X&quot;&gt;label&lt;/a&gt;</code></td><td>Text only, URL gone</td><td>Print the URL inline: <code>&lt;p&gt;label: X&lt;/p&gt;</code></td></tr>
+            <tr><td><code>&lt;img&gt;</code></td><td>Disappears</td><td>Use the card&rsquo;s main-image slot (<code>card update --image PATH</code>)</td></tr>
+            <tr><td><code>&lt;pre&gt;</code> / <code>&lt;code&gt;</code></td><td>Markers stripped, contents flattened</td><td>Wrap in box-drawing characters; render line breaks as <code>&lt;br&gt;</code></td></tr>
+            <tr><td><code>&lt;table&gt;</code></td><td>All cells concatenated, no structure</td><td>Render rows as <code>&lt;p&gt;| a | b |&lt;/p&gt;</code> with <code>&lt;br&gt;</code> between rows</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="muted">
+        <code>scripts/adf_to_fizzy.py</code> automates every cell above when migrating from Atlassian Document Format.
+      </p>
+    </div>
+  </section>
+
+  <section class="band cta-band">
+    <div class="container cta-band-inner">
+      <div>
+        <h2>Drop it in and start working a Fizzy board today.</h2>
+        <p class="muted">MIT-licensed, single-skill, no build step.</p>
+      </div>
+      <a class="btn btn-primary btn-lg" href="https://github.com/cskwork/fizzy-skill" rel="noopener noreferrer">Open the repo</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p>
+      <a href="https://github.com/cskwork/fizzy-skill">cskwork/fizzy-skill</a>
+      &middot;
+      MIT
+      &middot;
+      Built for <a href="https://www.claude.com/product/claude-code">Claude Code</a> and
+      <a href="https://github.com/openai/codex">Codex CLI</a>.
+    </p>
+    <p class="muted small">
+      Fizzy is an independent project by
+      <a href="https://github.com/tobiasbischoff/fizzy-cli">tobiasbischoff</a>;
+      this skill is not affiliated with that project or with Atlassian.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
