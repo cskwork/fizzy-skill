@@ -1,0 +1,16 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
+  "name": "fizzy",
+  "description": "Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) — install/auth fizzy-cli, list boards/ca",
+  "owner": {
+    "name": "cskwork"
+  },
+  "plugins": [
+    {
+      "name": "fizzy",
+      "description": "Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) — install/auth fizzy-cli, list boards/ca",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

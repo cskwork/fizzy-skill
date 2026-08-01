@@ -1,0 +1,34 @@
+{
+  "name": "fizzy",
+  "version": "0.1.0",
+  "description": "Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) — install/auth fizzy-cli, list boards/cards, create/update/comment cards, or migrate a Jira issue (description + attachment URLs + comments) into one or more Fizzy cards. Covers Fizzy quirks (NO markdown rendering, silent pagination in comment list, single-account auto-select, magic-link in non-TTY) and Jira ADF → Fizzy plain-text conversion.",
+  "author": {
+    "name": "cskwork",
+    "url": "https://github.com/cskwork"
+  },
+  "homepage": "https://github.com/cskwork/fizzy",
+  "repository": "https://github.com/cskwork/fizzy",
+  "license": "MIT",
+  "keywords": [
+    "fizzy",
+    "skill",
+    "claude-code",
+    "codex"
+  ],
+  "skills": "./",
+  "interface": {
+    "displayName": "Fizzy",
+    "shortDescription": "Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) ",
+    "longDescription": "Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) — install/auth fizzy-cli, list boards/cards, create/update/comment cards, or migrate a Jira issue (description + attachment URLs + comments) into one or more Fizzy cards. Covers Fizzy quirks (NO markdown rendering, silent pagination in comment list, single-account auto-select, magic-link in non-TTY) and Jira ADF → Fizzy plain-text conversion.",
+    "developerName": "cskwork",
+    "category": "Productivity",
+    "capabilities": [
+      "Instructions"
+    ],
+    "websiteURL": "https://github.com/cskwork/fizzy",
+    "defaultPrompt": [
+      "Use fizzy for this task."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
