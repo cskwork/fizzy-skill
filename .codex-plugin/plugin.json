@@ -15,7 +15,7 @@
     "claude-code",
     "codex"
   ],
-  "skills": "./",
+  "skills": "./skills/",
   "interface": {
     "displayName": "Fizzy",
     "shortDescription": "Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) ",

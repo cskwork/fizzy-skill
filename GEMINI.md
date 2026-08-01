@@ -1,4 +1,4 @@
 # fizzy
 
-@./SKILL.md
+@./skills/fizzy/SKILL.md
 
