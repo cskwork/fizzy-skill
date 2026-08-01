@@ -1,4 +1,4 @@
 {
   "name": "fizzy",
-  "description": "Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) — install/auth fizzy-cli, list..."
+  "description": "Operate a self-hosted Fizzy kanban board via fizzy-cli. Use when creating cards or migrating Jira issues to Fizzy."
 }

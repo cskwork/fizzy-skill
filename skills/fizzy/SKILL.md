@@ -1,6 +1,6 @@
 ---
 name: fizzy
-description: Use when working with a self-hosted Fizzy kanban board (e.g. fizzy.example.com) — install/auth fizzy-cli, list boards/cards, create/update/comment cards, or migrate a Jira issue (description + attachment URLs + comments) into one or more Fizzy cards. Covers Fizzy quirks (NO markdown rendering, silent pagination in comment list, single-account auto-select, magic-link in non-TTY) and Jira ADF → Fizzy plain-text conversion.
+description: Operate a self-hosted Fizzy kanban board via fizzy-cli. Use when creating cards or migrating Jira issues to Fizzy.
 ---
 
 # fizzy
