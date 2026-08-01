@@ -6,8 +6,8 @@
     "name": "cskwork",
     "url": "https://github.com/cskwork"
   },
-  "homepage": "https://github.com/cskwork/fizzy",
-  "repository": "https://github.com/cskwork/fizzy",
+  "homepage": "https://github.com/cskwork/fizzy-skill",
+  "repository": "https://github.com/cskwork/fizzy-skill",
   "license": "MIT",
   "keywords": [
     "fizzy",
@@ -25,7 +25,7 @@
     "capabilities": [
       "Instructions"
     ],
-    "websiteURL": "https://github.com/cskwork/fizzy",
+    "websiteURL": "https://github.com/cskwork/fizzy-skill",
     "defaultPrompt": [
       "Use fizzy for this task."
     ],

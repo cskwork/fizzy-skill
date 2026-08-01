@@ -6,7 +6,7 @@
 ### Install
 
 ```bash
-claude plugin marketplace add cskwork/fizzy
+claude plugin marketplace add cskwork/fizzy-skill
 claude plugin install fizzy@fizzy
 ```
 
@@ -39,7 +39,7 @@ claude plugin marketplace remove fizzy
 ### Install
 
 ```bash
-codex plugin marketplace add cskwork/fizzy --ref main
+codex plugin marketplace add cskwork/fizzy-skill --ref main
 codex plugin add fizzy@fizzy
 ```
 
@@ -66,14 +66,14 @@ codex plugin marketplace remove fizzy
 ### Install (extension, always-on)
 
 ```bash
-gemini extensions install https://github.com/cskwork/fizzy
+gemini extensions install https://github.com/cskwork/fizzy-skill
 ```
 
 ### Install (command, opt-in)
 
 ```bash
 mkdir -p ~/.gemini/commands
-curl -fsSL https://raw.githubusercontent.com/cskwork/fizzy/main/skills/fizzy/agents/gemini.toml \
+curl -fsSL https://raw.githubusercontent.com/cskwork/fizzy-skill/main/skills/fizzy-skill/agents/gemini.toml \
   -o ~/.gemini/commands/fizzy.toml
 ```
 
@@ -99,8 +99,8 @@ gemini extensions uninstall fizzy
 ### Install
 
 ```bash
-npx skills add cskwork/fizzy
-npx skills add cskwork/fizzy -g
+npx skills add cskwork/fizzy-skill
+npx skills add cskwork/fizzy-skill -g
 ```
 
 Type `/fizzy` in a new agent chat.
@@ -131,7 +131,7 @@ npx skills remove fizzy
 ### Install
 
 ```bash
-agy plugin install https://github.com/cskwork/fizzy
+agy plugin install https://github.com/cskwork/fizzy-skill
 ```
 
 ### Verify
