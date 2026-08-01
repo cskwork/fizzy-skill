@@ -1,3 +1,5 @@
+<p align="center"><img src="logo.png" width="120" alt="logo" /></p>
+
 # fizzy-skill
 
 A Claude Code / Codex CLI **skill** for operating a self-hosted [Fizzy](https://github.com/tobiasbischoff/fizzy-cli) kanban board — onboarding, daily card/comment CRUD, and end-to-end Jira-to-Fizzy migration.
