@@ -1,6 +1,6 @@
 ---
 name: fizzy
-description: Operate a self-hosted Fizzy kanban board via fizzy-cli. Use when creating cards or migrating Jira issues to Fizzy.
+description: Operate a self-hosted Fizzy kanban board via fizzy-cli. Use when setting up fizzy-cli, creating or updating Fizzy cards and comments, or migrating Jira issues to Fizzy.
 ---
 
 # fizzy
@@ -8,8 +8,8 @@ description: Operate a self-hosted Fizzy kanban board via fizzy-cli. Use when cr
 Operate `tobiasbischoff/fizzy-cli` against a **self-hosted Fizzy instance**. Single skill covers:
 
 1. **Onboarding** — install, base-URL, auth (PAT or magic-link), default account
-2. **Daily ops** — board/card/comment CRUD with the markdown gotchas baked in
-3. **Jira → Fizzy migration** — pull a Jira issue's description, attachments, and 14-comment thread into a card (+ sub-cards) without losing formatting
+2. **Daily ops** — board/card/comment CRUD with the rendering gotchas baked in
+3. **Jira → Fizzy migration** — pull a Jira issue's description, attachments, and comment thread into a card (+ sub-cards) without losing formatting
 
 ## Quick decision
 
@@ -17,7 +17,7 @@ Operate `tobiasbischoff/fizzy-cli` against a **self-hosted Fizzy instance**. Sin
 Need to set up fizzy-cli from scratch?         → §1 Onboarding
 Need to create/update cards or comments?       → §2 Daily ops
 Need to import a Jira issue into Fizzy?        → §3 Jira → Fizzy migration
-Markdown looks broken after posting to Fizzy?  → §4 Markdown quirks
+Markdown looks broken after posting to Fizzy?  → §4 Rendering
 ```
 
 ## Inputs (env)
@@ -100,37 +100,43 @@ fizzy-cli card list --board-id <ID> | head -3
 
 ### Filter user-only comments
 
+Match the exact author name. Status-change events arrive as comments whose `creator.name` is `"System"` or empty, so a `!= "System"` filter lets some through.
+
 ```bash
 fizzy-cli --json comment list <N> \
-  | jq -r '.[] | select(.creator.name != null) | .id'
+  | jq -r --arg u '<username>' '.[] | select(.creator.name == $u) | .id'
 ```
-(Status-change comments have `creator: {name: "System"}`, sort of — filter on a known username instead.)
+`list_user_comments()` in `scripts/jira_to_fizzy.py` applies the same exact-match rule.
 
-### Card description / comment body — markdown rules
+### Card description / comment body — send HTML
 
-Fizzy renders **CommonMark** strictly: single `\n` is collapsed; only blank lines start a new paragraph. See §4.
+Fizzy takes the body as HTML and strips most tags; markdown is not parsed. Read §4 before writing your first `--description` or `--body`, or build the body with `scripts/adf_to_fizzy.py`, which already emits the strip-safe forms.
 
 ---
 
 ## §3 Jira → Fizzy migration
 
-End-to-end migrator: pulls issue + comments via Atlassian MCP, converts ADF → Fizzy-friendly markdown, creates parent card + optional sub-cards, posts every comment, retries on timeout.
+End-to-end migrator: reads an issue + comments JSON dump, converts ADF → Fizzy hybrid HTML, creates parent card + optional sub-cards, posts every comment, retries on timeout.
+
+Dump the issue yourself first — the migrator has no fetch path. Pull it with Atlassian MCP `mcp__claude_ai_Atlassian__getJiraIssue` (or `acli`) and save the JSON.
 
 ```bash
 # Prereq: Fizzy authenticated (§1), Atlassian MCP available, acli logged in
-python3 ~/.claude/skills/fizzy/scripts/jira_to_fizzy.py \
-  --issue PROJ-123 \
+python3 scripts/jira_to_fizzy.py \
+  --from-json /tmp/PROJ-123.json \
   --board <fizzy-board-id> \
   --site your-site.atlassian.net \
   --split-numbered   # auto-create sub-cards from "1.", "2.", "3." in description
 ```
 
+`--from-json`, `--board`, and `--site` are all required on a migration run.
+
 What it does (see `scripts/jira_to_fizzy.py` for the full flow):
-1. Fetches the issue + comments JSON via `mcp__claude_ai_Atlassian__getJiraIssue` (or reads a cached JSON file with `--from-json PATH`).
-2. Converts every ADF body to Fizzy-friendly markdown via `scripts/adf_to_md.py`.
+1. Reads the issue + comments JSON from `--from-json PATH`.
+2. Converts every ADF body to Fizzy hybrid HTML via `scripts/adf_to_fizzy.py`.
 3. Creates the parent card (compact summary + Jira URL + link to attachments).
 4. If `--split-numbered`, creates one sub-card per top-level numbered item in the description.
-5. Posts every Jira comment as `**[YYYY-MM-DD] author**\n\n<body>`.
+5. Posts every Jira comment under an `━` rule plus an author · date header line, body converted to hybrid HTML.
 6. Retries each fizzy-cli call up to 3× on `context deadline exceeded`.
 
 **Attachment handling (images):** Atlassian's `acli` OAuth scope lacks `read:attachment-content:jira`, so URL-based downloads return 401. Use a user-issued **Personal Access Token (PAT)** with Basic auth (`scripts/atlassian_attachments.py`).
@@ -147,7 +153,7 @@ Setup once:
 Download + attach:
 ```bash
 # Download every attachment to /tmp/fizzy-attachments/
-python3 ~/.claude/skills/fizzy/scripts/atlassian_attachments.py \
+python3 scripts/atlassian_attachments.py \
     download-issue --from-json /tmp/issue.json
 
 # Then attach a representative image as the card's main image (one per card)
@@ -158,7 +164,7 @@ Note: Fizzy strips `<img>` from description bodies, so embed-in-description is i
 
 **Idempotency:** to re-run cleanly, first wipe stale user comments:
 ```bash
-python3 ~/.claude/skills/fizzy/scripts/jira_to_fizzy.py --card <N> --wipe-user-comments <username>
+python3 scripts/jira_to_fizzy.py --card <N> --site your-site.atlassian.net --wipe-user-comments <username>
 ```
 
 ---
@@ -182,11 +188,11 @@ python3 ~/.claude/skills/fizzy/scripts/jira_to_fizzy.py --card <N> --wipe-user-c
 
 | Tag | Fizzy behavior | Workaround |
 |---|---|---|
-| `<h1>`…`<h6>` | shown as plain text, no marker | wrap: `<p>▶ <strong>title</strong></p>` (use emoji prefix as marker) |
-| `<strong>` / `<em>` | stripped | use emoji or `「 」` symbols if emphasis matters |
+| `<h1>`…`<h6>` | shown as plain text, no marker | wrap: `<p>[TITLE]</p>` — bracket label as the marker |
+| `<strong>` / `<em>` | stripped | use `「 」` symbols if emphasis matters |
 | `<hr>` | disappears | emit `<p>━━━━━━━━━━━━━━━━━━━━</p>` |
-| `<a href="X">label</a>` | text only, **URL is gone** | emit `<p>label: X</p>` or `<p>🔗 X</p>` |
-| `<img>` | disappears | emit `<p>이미지: <url></p>` (no emoji) |
+| `<a href="X">label</a>` | text only, **URL is gone** | emit `<p>label: X</p>` |
+| `<img>` | disappears | emit `<p>이미지: <url></p>` |
 | `<pre>`/`<code>` | stripped | emit `<p>코드:</p><p>…</p><p>---</p>` |
 | `<table>` | all cells concatenated, no structure | emit rows as `<p>\| a \| b \|</p>` |
 
@@ -202,10 +208,10 @@ python3 ~/.claude/skills/fizzy/scripts/jira_to_fizzy.py --card <N> --wipe-user-c
 
 ## Recommended layout for migrated cards
 
-> **POLICY — No emoji in deliverables.** Cards, comments, reports are business artifacts.
-> Use bracket labels (`[목적]`, `[상세 작업]`) and box-drawing rules (`━`, `·`) only.
-> No pictographic emoji (📌 🎯 ✅ 📎 etc.). Geometric arrows (▶ ▸ ■) are also discouraged
-> because some clients render them with emoji presentation.
+> **POLICY — deliverables carry no emoji.** Cards, comments, and reports are business
+> artifacts: mark structure with bracket labels (`[목적]`, `[상세 작업]`) and box-drawing
+> rules (`━`, `·`). Geometric arrows (`▶ ▸ ■`) count as emoji here — some clients render
+> them with emoji presentation.
 
 ```html
 <p>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</p>
@@ -221,15 +227,6 @@ python3 ~/.claude/skills/fizzy/scripts/jira_to_fizzy.py --card <N> --wipe-user-c
 ```
 
 This is what `scripts/adf_to_fizzy.py` + `header_block()` / `section()` produce automatically.
-
-## Common mistakes
-
-- **Sending markdown and hoping it renders** — Fizzy treats `**X**` as literal text. Use HTML or wrap content with `adf_to_fizzy`.
-- **Trusting `comment list` length** — it's page 1 (~3 items) only. Loop until empty when wiping.
-- **Filtering by `creator.name != "System"`** — some events have empty `creator.name`. Match on a specific username.
-- **Posting via `bash -c` with `--description "...\`x\`..."`** — backticks trigger command substitution. Always use Python `subprocess.run([...])`.
-- **`<a href>` for important URLs** — Fizzy strips the href. Always print the URL as visible text.
-- **`<table>` for important tabular data** — cells get concatenated with no separator. Build the table yourself with `<p>| a | b |</p>` rows.
 
 ## Files
 
