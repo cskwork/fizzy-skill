@@ -20,6 +20,8 @@ This skill bakes those traps into one decision-tree document so an agent can hit
 
 ## What's in the box
 
+Paths in this table are relative to the self-contained `skills/fizzy/` package.
+
 | Path | Purpose |
 |---|---|
 | `SKILL.md` | The skill itself — onboarding, daily ops, Jira migration, Fizzy HTML quirks |
@@ -33,17 +35,21 @@ This skill bakes those traps into one decision-tree document so an agent can hit
 
 ## Install
 
-The repo is a single SKILL.md plus a `scripts/` folder. Drop it into your skills directory:
+Clone the repository to a maintained location, then install or link its **`skills/fizzy/` package**, which contains `SKILL.md`, helpers, and generated references. The repository root itself is not a skill directory.
 
 ```bash
-# Claude Code
-git clone https://github.com/cskwork/fizzy-skill.git ~/.claude/skills/fizzy
+git clone https://github.com/cskwork/fizzy-skill.git ~/fizzy-skill
 
-# Codex CLI (same SKILL.md format)
-git clone https://github.com/cskwork/fizzy-skill.git ~/.codex/skills/fizzy
+# Claude Code (choose the intended host; preserve any existing destination)
+mkdir -p ~/.claude/skills
+ln -s ~/fizzy-skill/skills/fizzy ~/.claude/skills/fizzy
+
+# Or Codex CLI
+mkdir -p ~/.codex/skills
+ln -s ~/fizzy-skill/skills/fizzy ~/.codex/skills/fizzy
 ```
 
-Both ecosystems read the YAML front matter and Markdown body identically, so a single clone serves either CLI.
+For a copy-based installation, copy the complete `skills/fizzy/` directory. Plugin and Cursor installation routes remain in [INSTALL.md](INSTALL.md).
 
 ## Quick start
 
@@ -60,14 +66,14 @@ fizzy-cli board list
 For migration:
 
 ```bash
-python3 scripts/jira_to_fizzy.py \
+python3 skills/fizzy/scripts/jira_to_fizzy.py \
   --from-json /tmp/PROJ-123.json \
   --board <fizzy-board-id> \
   --site your-site.atlassian.net \
   --split-numbered
 ```
 
-See [`SKILL.md`](./SKILL.md) for the full guide and the [landing page](https://cskwork.github.io/fizzy-skill/) for a quick visual overview.
+See [`skills/fizzy/SKILL.md`](./skills/fizzy/SKILL.md) for the full guide and the [landing page](https://cskwork.github.io/fizzy-skill/) for a quick visual overview.
 
 ## License
 
@@ -77,3 +83,7 @@ See [`SKILL.md`](./SKILL.md) for the full guide and the [landing page](https://c
 
 - [`tobiasbischoff/fizzy-cli`](https://github.com/tobiasbischoff/fizzy-cli) — the upstream CLI this skill operates.
 - Atlassian Document Format spec — the source of truth for the ADF → HTML/plain converters.
+
+## Maintained skill sources
+
+Edit `skills/fizzy/` for maintained instructions/helpers and root `references/` for shared resources. Run `python3 scripts/sync-distributions.py`, then `python3 scripts/sync-distributions.py --check`. Resource copies under the skill and the existing Cursor directory are generated; keep them committed for independent installation.
