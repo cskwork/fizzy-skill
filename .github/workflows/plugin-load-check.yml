@@ -6,6 +6,9 @@ on:
       - .claude-plugin/**
       - skills/**
       - SKILL.md
+      - .cursor/skills/**
+      - scripts/sync-distributions.py
+      - references/**
       - .github/workflows/plugin-load-check.yml
   push:
     branches: [main]
@@ -15,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check generated skill distribution
+        run: python3 scripts/sync-distributions.py --check
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
       - name: Install the plugin from this checkout into a scratch config

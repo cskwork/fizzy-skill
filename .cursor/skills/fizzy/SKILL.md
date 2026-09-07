@@ -24,7 +24,9 @@ Markdown looks broken after posting to Fizzy?  → §4 Rendering
 
 - `FIZZY_HOST` — base URL (e.g. `https://fizzy.example.com`)
 - `FIZZY_EMAIL` — account email
-- `FIZZY_TOKEN` (preferred) OR magic-link from inbox
+- `FIZZY_TOKEN` (preferred) OR an authorized magic-link flow
+
+Operate only on the requested host/account/board and actions. Setup does not authorize comments, migration, or deletion. Never print token/config contents; recover auth through the supported user flow.
 
 For Jira import: `acli` must be authenticated to the source site (`acli auth status` → ✓).
 
@@ -76,8 +78,8 @@ fizzy-cli account set <SLUG>    # required even with only one account
 ### 1.5 Verify
 ```bash
 fizzy-cli board list
-fizzy-cli card create --board-id <ID> --title "fizzy setup test" --description "ok" --status published
-fizzy-cli card list --board-id <ID> | head -3
+fizzy-cli card list --board-id <ID>
+# Create a test card only if the user requested a write-path check.
 ```
 
 ---
@@ -162,10 +164,23 @@ fizzy-cli card update <N> --image /tmp/fizzy-attachments/<id>_<name>.png
 
 Note: Fizzy strips `<img>` from description bodies, so embed-in-description is impossible — only the card's main image slot works (one image per card).
 
-**Idempotency:** to re-run cleanly, first wipe stale user comments:
+**Reruns:** inspect existing cards/comments before retrying. The migrator's timeout retry can duplicate writes; a timeout does not prove nothing was created.
+
+For approval to remove specific comments, resolve and preserve the approved card/comment IDs, then delete only those IDs individually using the command shape used by the helper:
+
+```bash
+fizzy-cli comment delete <approved-card-number> <approved-comment-id>
+```
+
+Verify the installed CLI syntax before execution and read back the remaining comments. Do not substitute a display-name wipe for an approved ID list.
+
+The broad helper below is only for explicit authorization to delete **all comments matching the exact creator display name on this card**, including matches found on repeated listings. It is not bound to a reviewed snapshot: comments appearing later during the run can also be deleted, and distinct people can share a display name. The implementation re-lists for up to 50 rounds; it does not accept an approved-ID set.
+
 ```bash
 python3 scripts/jira_to_fizzy.py --card <N> --site your-site.atlassian.net --wipe-user-comments <username>
 ```
+
+Use that helper only when its full selection behavior is authorized. It is not an idempotency mechanism.
 
 ---
 
